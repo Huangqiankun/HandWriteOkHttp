@@ -63,6 +63,17 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
+        /*
+        * 1、要干什么事情（网络请求，Request 封装之后转成 Response ）
+        * 2、依葫芦画瓢，先创造身体，复制一份，再注入灵魂
+        * 3、创造Request 对象，再造 Response 对象
+        * 4、流程图：分发器、责任链、拦截器
+        * 5、分发器：执行队列、等待队列、线程池、逻辑判断、线程结束
+        * 6、拦截器：对应拦截器的职责干什么 （专一，只做自己的事）
+        * 7、责任链模式：肯定有一个chain接口和其他实现类，遵循对类隐藏，对接口暴露
+        * 8、辅助类完成
+        *
+        * */
         Request2 request2 = new Request2.Builder().url(PATH).build();
         OkHttpClient2 okHttpClient = new OkHttpClient2.Builder().build();
         Call2 call = okHttpClient.newCall(request2);
