@@ -8,12 +8,9 @@ public class OkHttpClient2 {
     }
 
     public static class Builder {
-
         public Builder() {
 
         }
-
-
         public OkHttpClient2 build() {
             return new OkHttpClient2();
         }
