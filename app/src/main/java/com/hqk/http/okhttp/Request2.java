@@ -57,6 +57,10 @@ public class Request2 {
     public Request2() {
         this(new Builder());
     }
+
+    public Builder builder(){
+        return builder;
+    }
     public Request2(Builder builder) {
         this.builder = builder;
         this.url = builder.url;

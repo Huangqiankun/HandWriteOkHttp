@@ -1,22 +1,28 @@
 package com.hqk.http;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.hqk.http.okhttp.Call2;
 import com.hqk.http.okhttp.Callback2;
+import com.hqk.http.okhttp.DownloadUtil2;
 import com.hqk.http.okhttp.OkHttpClient2;
 import com.hqk.http.okhttp.Request2;
 import com.hqk.http.okhttp.Response2;
 
+import java.io.File;
 import java.io.IOException;
 
 import okhttp3.Call;
@@ -36,17 +42,18 @@ public class MainActivity extends AppCompatActivity {
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.WRITE_EXTERNAL_STORAGE"};
 
+    ImageView imageView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestPermissions(this);
         setContentView(R.layout.activity_main);
+        imageView = findViewById(R.id.imageview);
     }
 
 
     public void testNet(View view) {
         String PATH = "https://hb.yxg12.cn/list.php?page=111&size=333";
-        //String PATH = "http://jz.yxg12.cn/list.php?page=111&size=333";
 //        Request request = new Request.Builder().url(PATH).build();
 //        OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 //        Call call = okHttpClient.newCall(request);
@@ -75,8 +82,52 @@ public class MainActivity extends AppCompatActivity {
         *
         * */
         Request2 request2 = new Request2.Builder().url(PATH).build();
-        OkHttpClient2 okHttpClient = new OkHttpClient2.Builder().build();
-        Call2 call = okHttpClient.newCall(request2);
+        OkHttpClient2 okHttpClient2 = new OkHttpClient2.Builder().build();
+        Call2 call2 = okHttpClient2.newCall(request2);
+        call2.enqueue(new Callback2() {
+            @Override
+            public void onFailure(Call2 call, IOException e) {
+
+            }
+
+            @Override
+            public void onResponse(Call2 call, Response2 response) {
+                content = response.body().string();
+                mHandler.sendEmptyMessage(1);
+            }
+        });
+
+    }
+
+    public void downloadFile(View view) {
+        DownloadUtil2.get().download("http://jz.yxg12.cn/meinv.jpg", Environment.getExternalStorageDirectory().getAbsolutePath(), "meinv.jpg",
+                new DownloadUtil2.OnDownloadListener() {
+                    @Override
+                    public void onDownloadSuccess(File file) {
+
+                        //下载完成进行相关逻辑操作
+                        content = "文件下载完成，路径："+file.getAbsolutePath();
+                        Message msg = mHandler.obtainMessage();
+                        msg.what = 1;
+                        mHandler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onDownloadFailed(Exception e) {
+                        //下载异常进行相关提示操作
+                        Message msg = mHandler.obtainMessage();
+                        msg.what = 1;
+                        msg.obj = e;
+                        mHandler.sendMessage(msg);
+                    }
+
+                });
+    }
+
+    public void showNetImage(View view) {
+        Request2 request2 = new Request2.Builder().url("http://jz.yxg12.cn/meinv.jpg").build();
+        OkHttpClient2 client2 = new OkHttpClient2.Builder().build();
+        Call2 call = client2.newCall(request2);
         call.enqueue(new Callback2() {
             @Override
             public void onFailure(Call2 call, IOException e) {
@@ -85,17 +136,25 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call2 call, Response2 response) {
-                content = response.body().toString();
-                mHandler.sendEmptyMessage(1);
+//我写的这个例子是请求一个图片
+                //response的body是图片的byte字节
+                byte[] bytes = response.body().getBytes();
+                //response.body().close();
+                //把byte字节组装成图片
+                //直接操作byte字节码
+                final Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                //回调是运行在非ui主线程，
+                //数据请求成功后，在主线程中更新
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //网络图片请求成功，更新到主线程的ImageView
+                        imageView.setImageBitmap(bmp);
+                    }
+                });
+
             }
         });
-
-    }
-
-    public void downloadFile(View view) {
-    }
-
-    public void showNetImage(View view) {
     }
 
     private Handler mHandler = new Handler() {
